@@ -39,3 +39,11 @@ function love.keypressed(key)
 	state.onKeyPress(key)
 	
 end
+
+--Executed on key release
+function love.keyreleased(key)
+
+	--Updates state
+	state.onKeyRelease(key)
+	
+end
