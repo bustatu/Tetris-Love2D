@@ -18,7 +18,44 @@ tetrisGame = {
 	block_size = 25,
 	border_size = 1,
 	bkg_color = {0.8, 0.8, 0.8},
-	placedBlocks = {},
+	placedBlocks = {
+	
+		clearTable = function()
+		
+			-- Loops trough all the squares
+			for y = 1, tetrisGame.size_y, 1 do
+				
+				local lineFull = true
+				
+				for x = 1, tetrisGame.size_x, 1 do
+					
+					if tetrisGame.placedBlocks[y][x].block_type == 0 then
+					
+						lineFull = false
+					
+					end
+
+				end
+				
+				if lineFull == true then
+					
+					--Clear the line
+					for j = y, 2, -1 do
+						
+						tetrisGame.placedBlocks[j] = tetrisGame.placedBlocks[j - 1]
+						
+					end
+					
+					--Reset Y to go back
+					y = y - 2
+					
+				end
+				
+			end
+	
+		end
+	
+	},
 	
 	--Block that is going to be next chosen
 	nextBlock = {
@@ -178,9 +215,49 @@ tetrisGame = {
 			tetrisGame.currentBlock.timer = tetrisGame.currentBlock.timer + delta_time * tetrisGame.currentBlock.speed
 			while tetrisGame.currentBlock.timer > 1 do
 				
-				--Go down
-				tetrisGame.currentBlock.py = tetrisGame.currentBlock.py + 1
-				tetrisGame.currentBlock.timer = tetrisGame.currentBlock.timer - 1
+				if tetrisGame.currentBlock.validpos() == 1 then
+				
+					--Go down
+					tetrisGame.currentBlock.moveDown()
+					
+					if tetrisGame.currentBlock.validpos() <= 0 then
+					
+						--Go up
+						tetrisGame.currentBlock.moveUp()
+						
+						--Add the block to the block table
+						--Loop trough the piece
+						for key, val in ipairs(blocks.block_data[tetrisGame.currentBlock.index_in_blocks][tetrisGame.currentBlock.frame]) do
+							
+							for key1, val1 in ipairs(val) do 
+								
+								--If this is ok
+								if val1 ~= 0 then
+									
+									--Position in the table
+									local tx = (key1 + tetrisGame.currentBlock.px)
+									local ty = (key  + tetrisGame.currentBlock.py)
+					
+									tetrisGame.placedBlocks[ty][tx].block_type = 1
+									tetrisGame.placedBlocks[ty][tx].color = tetrisGame.currentBlock.color
+									
+								end
+							
+							end
+
+						end
+									
+						--Grab next block
+						tetrisGame.currentBlock.grabNext()
+						
+						--Check table
+						tetrisGame.placedBlocks.clearTable()
+					
+					end
+				
+				end
+				
+				tetrisGame.currentBlock.timer = tetrisGame.currentBlock.timer - 1	
 				
 			end
 		
@@ -197,29 +274,27 @@ tetrisGame = {
 					--If this is ok
 					if val1 ~= 0 then
 						
-						--Check bounds
+						--Position in the table
 						local tx = (key1 - 1 + tetrisGame.currentBlock.px)
 						local ty = (key  - 1 + tetrisGame.currentBlock.py)
 						
-						if tx < 0 or tx + 1 > tetrisGame.size_x then
+						--Check bounds
+						if tx < 0 or tx >= tetrisGame.size_x then
 							
-							return false
+							return 0
 							
-						elseif ty < 0 or ty + 1 > tetrisGame.size_y then
+						elseif ty < 0 or ty >= tetrisGame.size_y then
 							
-							return false
-						
+							return 0
+							
 						end
 						
-						--x : (key1 - 1 + tetrisGame.currentBlock.px)
-						--y : (key  - 1 + tetrisGame.currentBlock.py)
-						
-						--Draw block
-						love.graphics.rectangle('fill',
-						tetrisGame.currentBlock.x + (key1 - 1 + tetrisGame.currentBlock.px) * tetrisGame.block_size * tetrisGame.render_scale_x,
-						tetrisGame.currentBlock.y + (key  - 1 + tetrisGame.currentBlock.py) * tetrisGame.block_size * tetrisGame.render_scale_y,
-						(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_x,
-						(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_y)
+						--Check piece collision
+						if tetrisGame.placedBlocks[ty + 1][tx + 1].block_type ~= 0 then
+					
+							return -1
+					
+						end
 						
 					end
 				
@@ -227,7 +302,41 @@ tetrisGame = {
 
 			end
 			
-			return true
+			return 1
+			
+		end,
+		
+		rotateLeft = function()
+		
+			--Change the frame, if it exceeds the limit then reset
+			tetrisGame.currentBlock.frame = tetrisGame.currentBlock.frame + 1
+			if tetrisGame.currentBlock.frame > blocks.block_data[tetrisGame.currentBlock.index_in_blocks].frames then
+				tetrisGame.currentBlock.frame = 1
+			end
+		
+		end,
+		
+		rotateRight = function()
+			
+			--Change the frame, if it exceeds the limit then reset
+			tetrisGame.currentBlock.frame = tetrisGame.currentBlock.frame - 1
+			if tetrisGame.currentBlock.frame < 1 then
+				tetrisGame.currentBlock.frame = blocks.block_data[tetrisGame.currentBlock.index_in_blocks].frames
+			end
+		
+		end,
+		
+		moveDown = function()
+			
+			--Go down
+			tetrisGame.currentBlock.py = tetrisGame.currentBlock.py + 1	
+		
+		end,
+		
+		moveUp = function()
+		
+			--Go up
+			tetrisGame.currentBlock.py = tetrisGame.currentBlock.py - 1	
 			
 		end,
 	},
@@ -340,7 +449,8 @@ end
 
 -- Called during the update event
 tetrisGame.update = function(delta_time)
-
+	
+	--Update the block timer
 	tetrisGame.currentBlock.update(delta_time)
 	
 end
@@ -415,19 +525,25 @@ tetrisGame.onKeyPress = function(key)
 	--Piece rotation
 	if key == "x" then
 		
-		--Change the frame, if it exceeds the limit then reset
-		tetrisGame.currentBlock.frame = tetrisGame.currentBlock.frame + 1
-		if tetrisGame.currentBlock.frame > blocks.block_data[tetrisGame.currentBlock.index_in_blocks].frames then
-			tetrisGame.currentBlock.frame = 1
-		end
+		tetrisGame.currentBlock.rotateLeft()
+		
+		--If position is not valid, then restore
+		if tetrisGame.currentBlock.validpos() <= 0 then
+		
+			tetrisGame.currentBlock.rotateRight()
+			
+		end	
 		
 	elseif key == "z" then
 	
-		--Change the frame, if it exceeds the limit then reset
-		tetrisGame.currentBlock.frame = tetrisGame.currentBlock.frame - 1
-		if tetrisGame.currentBlock.frame < 1 then
-			tetrisGame.currentBlock.frame = blocks.block_data[tetrisGame.currentBlock.index_in_blocks].frames
-		end
+		tetrisGame.currentBlock.rotateRight()
+		
+		--If position is not valid, then restore
+		if tetrisGame.currentBlock.validpos() <= 0 then
+		
+			tetrisGame.currentBlock.rotateLeft()
+			
+		end		
 		
 	elseif key == "down" then
 		
@@ -440,7 +556,7 @@ tetrisGame.onKeyPress = function(key)
 		tetrisGame.currentBlock.px = tetrisGame.currentBlock.px - 1
 		
 		--If not valid then go back
-		if tetrisGame.currentBlock.validpos() ~= true then
+		if tetrisGame.currentBlock.validpos() <= 0 then
 		
 			tetrisGame.currentBlock.px = tetrisGame.currentBlock.px + 1
 			
@@ -457,7 +573,7 @@ tetrisGame.onKeyPress = function(key)
 		tetrisGame.currentBlock.px = tetrisGame.currentBlock.px + 1
 		
 		--If not valid then go back
-		if tetrisGame.currentBlock.validpos() ~= true then
+		if tetrisGame.currentBlock.validpos() <= 0 then
 		
 			tetrisGame.currentBlock.px = tetrisGame.currentBlock.px - 1
 			
