@@ -27,8 +27,10 @@ tetrisGame = {
 				
 				local lineFull = true
 				
+				--Loop trough the line
 				for x = 1, tetrisGame.size_x, 1 do
 					
+					--If is empty then the line is not full
 					if tetrisGame.placedBlocks[y][x].block_type == 0 then
 					
 						lineFull = false
@@ -37,6 +39,7 @@ tetrisGame = {
 
 				end
 				
+				--If full then clear
 				if lineFull == true then
 					
 					--Clear the line
@@ -80,7 +83,7 @@ tetrisGame = {
 			--Second color can't be closer than 0.1 to the first
 			math.randomseed(math.random())
 			tetrisGame.nextBlock.color[2] = math.random(99) / 100
-			while(math.abs(tetrisGame.nextBlock.color[2] - tetrisGame.nextBlock.color[1]) < 0.1) do
+			while(math.abs(tetrisGame.nextBlock.color[2] - tetrisGame.nextBlock.color[1]) < 0.15) do
 				math.randomseed(math.random())
 				tetrisGame.nextBlock.color[2] = math.random(99) / 100			
 			end
@@ -88,7 +91,7 @@ tetrisGame = {
 			--Last color can't be closer than 0.1 to all the others
 			math.randomseed(math.random())
 			tetrisGame.nextBlock.color[3] = math.random(99) / 100
-			while(math.abs(tetrisGame.nextBlock.color[2] - tetrisGame.nextBlock.color[3]) < 0.1 and math.abs(tetrisGame.nextBlock.color[1] - tetrisGame.nextBlock.color[3]) < 0.1) do
+			while(math.abs(tetrisGame.nextBlock.color[2] - tetrisGame.nextBlock.color[3]) < 0.15 and math.abs(tetrisGame.nextBlock.color[1] - tetrisGame.nextBlock.color[3]) < 0.15) do
 				math.randomseed(math.random())
 				tetrisGame.nextBlock.color[3] = math.random(99) / 100			
 			end
@@ -117,18 +120,14 @@ tetrisGame = {
 					--If this is ok
 					if val1 ~= 0 then
 						
-						-- Set drawing color
-						love.graphics.setColor(tetrisGame.nextBlock.color[1], tetrisGame.nextBlock.color[2], tetrisGame.nextBlock.color[3])
-						
 						--Draw block
-						love.graphics.rectangle('fill',
-						tetrisGame.nextBlock.x - (blocks.block_data[tetrisGame.nextBlock.index_in_blocks].size_x / 2 - (key1 - 1)) * tetrisGame.block_size * tetrisGame.render_scale_x,
-						tetrisGame.nextBlock.y - (blocks.block_data[tetrisGame.nextBlock.index_in_blocks].size_y / 2 - (key  - 1)) * tetrisGame.block_size * tetrisGame.render_scale_y,
-						(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_x,
-						(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_y)
-						
-						-- Reset drawing color
-						love.graphics.setColor(1, 1, 1)
+						drawBlock(
+							{
+								tetrisGame.nextBlock.x - (blocks.block_data[tetrisGame.nextBlock.index_in_blocks].size_x / 2 - (key1 - 1)) * tetrisGame.block_size * tetrisGame.render_scale_x,
+								tetrisGame.nextBlock.y - (blocks.block_data[tetrisGame.nextBlock.index_in_blocks].size_y / 2 - (key  - 1)) * tetrisGame.block_size * tetrisGame.render_scale_y,
+							},
+							tetrisGame.nextBlock.color
+						)
 						
 					end
 				
@@ -187,19 +186,15 @@ tetrisGame = {
 					
 					--If this is ok
 					if val1 ~= 0 then
-						
-						-- Set drawing color
-						love.graphics.setColor(tetrisGame.currentBlock.color[1], tetrisGame.currentBlock.color[2], tetrisGame.currentBlock.color[3])
-						
+					
 						--Draw block
-						love.graphics.rectangle('fill',
-						tetrisGame.currentBlock.x + (key1 - 1 + tetrisGame.currentBlock.px) * tetrisGame.block_size * tetrisGame.render_scale_x,
-						tetrisGame.currentBlock.y + (key  - 1 + tetrisGame.currentBlock.py) * tetrisGame.block_size * tetrisGame.render_scale_y,
-						(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_x,
-						(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_y)
-						
-						-- Reset drawing color
-						love.graphics.setColor(1, 1, 1)
+						drawBlock(
+							{
+								tetrisGame.currentBlock.x + (key1 - 1 + tetrisGame.currentBlock.px) * tetrisGame.block_size * tetrisGame.render_scale_x,
+								tetrisGame.currentBlock.y + (key  - 1 + tetrisGame.currentBlock.py) * tetrisGame.block_size * tetrisGame.render_scale_y,
+							},
+							tetrisGame.currentBlock.color
+						)
 						
 					end
 				
@@ -375,18 +370,14 @@ tetrisGame = {
 						--If this is ok
 						if val1 ~= 0 then
 							
-							-- Set drawing color
-							love.graphics.setColor(tetrisGame.grabbedBlock.color[1], tetrisGame.grabbedBlock.color[2], tetrisGame.grabbedBlock.color[3])
-							
-							--Draw block
-							love.graphics.rectangle('fill',
-							tetrisGame.grabbedBlock.x - (blocks.block_data[tetrisGame.grabbedBlock.index_in_blocks].size_x / 2 - (key1 - 1)) * tetrisGame.block_size * tetrisGame.render_scale_x,
-							tetrisGame.grabbedBlock.y - (blocks.block_data[tetrisGame.grabbedBlock.index_in_blocks].size_y / 2 - (key  - 1)) * tetrisGame.block_size * tetrisGame.render_scale_x,
-							(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_x,
-							(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_y)
-							
-							-- Reset drawing color
-							love.graphics.setColor(1, 1, 1)
+							-- Draws the square
+							drawBlock(
+								{
+									tetrisGame.grabbedBlock.x - (blocks.block_data[tetrisGame.grabbedBlock.index_in_blocks].size_x / 2 - (key1 - 1)) * tetrisGame.block_size * tetrisGame.render_scale_x,
+									tetrisGame.grabbedBlock.y - (blocks.block_data[tetrisGame.grabbedBlock.index_in_blocks].size_y / 2 - (key  - 1)) * tetrisGame.block_size * tetrisGame.render_scale_y,
+								},
+								tetrisGame.grabbedBlock.color
+							)
 							
 						end
 					
@@ -474,21 +465,20 @@ tetrisGame.draw = function()
 		for x = 1, tetrisGame.size_x, 1 do
 			
 			-- Set square drawing color
-			if tetrisGame.placedBlocks[y][x].block_type == 0 then
-				love.graphics.setColor(tetrisGame.bkg_color[1], tetrisGame.bkg_color[2], tetrisGame.bkg_color[3])
-			else
-				love.graphics.setColor(tetrisGame.placedBlocks[y][x].color[1], tetrisGame.placedBlocks[y][x].color[2], tetrisGame.placedBlocks[y][x].color[3])
+			local color = {tetrisGame.bkg_color[1], tetrisGame.bkg_color[2], tetrisGame.bkg_color[3]}
+			if tetrisGame.placedBlocks[y][x].block_type ~= 0 then
+				color = {tetrisGame.placedBlocks[y][x].color[1], tetrisGame.placedBlocks[y][x].color[2], tetrisGame.placedBlocks[y][x].color[3]}
 			end
 			
-			-- Draws the squares
-			love.graphics.rectangle('fill',
-			love.graphics.getWidth()  / 2 - (tableSizeX / 2 - (x - 1) * tetrisGame.block_size) * tetrisGame.render_scale_x,
-			love.graphics.getHeight() / 2 - (tableSizeY / 2 - (y - 1) * tetrisGame.block_size) * tetrisGame.render_scale_y,
-			(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_x,
-			(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_y)
+			-- Draws the square
+			drawBlock(
+				{
+					love.graphics.getWidth()  / 2 - (tableSizeX / 2 - (x - 1) * tetrisGame.block_size) * tetrisGame.render_scale_x,
+					love.graphics.getHeight() / 2 - (tableSizeY / 2 - (y - 1) * tetrisGame.block_size) * tetrisGame.render_scale_y,
+				},
+				color
+			)
 			
-			-- Reset drawing color
-			love.graphics.setColor(1, 1, 1)
 		end
 		
 	end
@@ -601,4 +591,24 @@ tetrisGame.onKeyPress = function(key)
 
 	end
 	
+end
+
+--Auxiliary functions
+drawBlock = function(pos, drawColor)
+	
+	--Set color
+	love.graphics.setColor(drawColor[1], drawColor[2], drawColor[3])
+	
+	-- Block size
+	local blockSize = {
+		(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_x,
+		(tetrisGame.block_size - tetrisGame.border_size) * tetrisGame.render_scale_y,
+	}
+	
+	--Draws the block
+	love.graphics.rectangle('fill', pos[1], pos[2], blockSize[1], blockSize[2])
+	
+	-- Reset drawing color
+	love.graphics.setColor(1, 1, 1)
+
 end
