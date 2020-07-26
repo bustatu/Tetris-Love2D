@@ -45,7 +45,7 @@ tetrisGame = {
 					--Clear the line
 					for j = y, 2, -1 do
 						
-						tetrisGame.placedBlocks[j] = tetrisGame.placedBlocks[j - 1]
+						tetrisGame.placedBlocks[j] = {unpack(tetrisGame.placedBlocks[j - 1])}
 						
 					end
 					
