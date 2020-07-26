@@ -1,3 +1,4 @@
-#Ignore any build executables
+#Ignore any build executables or archives
 *.exe
 *.zip
+*.rar
